@@ -1,0 +1,54 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: proyecto_app
+    restart: unless-stopped
+    ports:
+      - "8100:80"
+    volumes:
+      - ./src:/var/www/html
+    networks:
+      - proyecto_network
+    depends_on:
+      - db
+
+  db:
+    image: mariadb:10.8
+    container_name: proyecto_mariadb
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: inventario_db
+      MYSQL_USER: dev_user
+      MYSQL_PASSWORD: dev_password
+    ports:
+      - "3308:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - proyecto_network
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: proyecto_phpmyadmin
+    restart: unless-stopped
+    environment:
+      PMA_HOST: db
+      PMA_USER: root
+      PMA_PASSWORD: root_password
+      UPLOAD_LIMIT: 100M
+    ports:
+      - "8101:80"
+    networks:
+      - proyecto_network
+    depends_on:
+      - db
+
+volumes:
+  db_data:
+
+networks:
+  proyecto_network:
+    driver: bridge
